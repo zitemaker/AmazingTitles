@@ -1,7 +1,7 @@
 name: AmazingTitles
 api-version: 1.13
 version: 5.0
-main: sk.m3ii0.amazingtitles.code.internal.Booter
+main: com.zitemaker.amazingtitles.code.internal.Booter
 author: M3II0
 softdepend:
   - CMI

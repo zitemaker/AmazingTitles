@@ -1,0 +1,169 @@
+package com.zitemaker.amazingtitles.code.api.builders;
+
+import org.bukkit.boss.BarColor;
+import com.zitemaker.amazingtitles.code.api.AmazingTitles;
+import com.zitemaker.amazingtitles.code.api.enums.AnimationType;
+import com.zitemaker.amazingtitles.code.api.enums.DisplayType;
+import com.zitemaker.amazingtitles.code.api.interfaces.AmazingExtension;
+import com.zitemaker.amazingtitles.code.api.interfaces.FramesBuilder;
+import com.zitemaker.amazingtitles.code.internal.Booter;
+import com.zitemaker.amazingtitles.code.internal.components.AnimationComponent;
+import com.zitemaker.amazingtitles.code.internal.components.ComponentArguments;
+import com.zitemaker.amazingtitles.code.internal.components.implementations.FadeInAnimationComponent;
+import com.zitemaker.amazingtitles.code.internal.components.implementations.LightAnimationComponent;
+import com.zitemaker.amazingtitles.code.internal.components.implementations.RepeatingAnimationComponent;
+
+import java.util.*;
+
+public class AnimationBuilder {
+	
+	/*
+	*
+	* Values
+	*
+	* */
+	
+	private static final List<String> textArgument = Collections.singletonList(
+	 "(Animation Text - visit wiki for more)"
+	);
+	private ComponentArguments componentArguments = ComponentArguments.create("Default Text", "Default SubText", BarColor.WHITE, 1, 20, DisplayType.TITLE);
+	private FramesBuilder framesBuilder = (componentArguments, args) -> {
+		String mainText = componentArguments.getMainText();
+		return new LinkedList<>(Collections.singletonList(mainText));
+	};
+	
+	private String overrideMainText = null;
+	private String overrideSubText = null;
+	private BarColor overrideBarColor = null;
+	private int overrideDuration = -99;
+	private int overrideFps = -99;
+	private DisplayType overrideDisplayType = null;
+	
+	private final AmazingExtension owner;
+	private final AnimationType animationType;
+	private final boolean requiresHex;
+	private final List<String> arguments;
+	
+	/*
+	*
+	* Constructor
+	*
+	* */
+	
+	public AnimationBuilder(AmazingExtension owner, AnimationType animationType, boolean requiresHex, String... arguments) {
+		this.owner = owner;
+		this.animationType = animationType;
+		this.requiresHex = requiresHex;
+		this.arguments = Arrays.asList((arguments));
+	}
+	
+	/*
+	*
+	* Getters
+	*
+	* */
+	
+	public AmazingExtension getOwner() {
+		return owner;
+	}
+	
+	public FramesBuilder getFramesBuilder() {
+		return framesBuilder;
+	}
+	
+	public AnimationType getAnimationType() {
+		return animationType;
+	}
+	
+	public boolean isRequiresHex() {
+		return requiresHex;
+	}
+	
+	public List<String> getArguments() {
+		return arguments;
+	}
+	
+	public List<String> getArgumentAt(int position) {
+		if (position >= arguments.size()) {
+			return textArgument;
+		}
+		return Collections.singletonList((arguments.get(position)));
+	}
+	
+	public int getTotalArguments() {
+		return arguments.size();
+	}
+	
+	/*
+	*
+	* Setters
+	*
+	* */
+	
+	public void setFramesBuilder(FramesBuilder framesBuilder) {
+		this.framesBuilder = framesBuilder;
+	}
+	
+	public void setComponentArguments(ComponentArguments componentArguments) {
+		this.componentArguments = componentArguments;
+	}
+	
+	/*
+	*
+	* Overrides
+	*
+	* */
+	
+	public void overrideMainText(String override) {
+		this.overrideMainText = override;
+	}
+	
+	public void overrideSubText(String override) {
+		this.overrideSubText = override;
+	}
+	
+	public void overrideBarColor(BarColor override) {
+		this.overrideBarColor = override;
+	}
+	
+	public void overrideDuration(int override) {
+		this.overrideDuration = override;
+	}
+	
+	public void overrideFps(int override) {
+		this.overrideFps = override;
+	}
+	
+	public void overrideDisplayType(DisplayType override) {
+		this.overrideDisplayType = override;
+	}
+	
+	/*
+	*
+	* Functions
+	*
+	* */
+	
+	public void register(String name) {
+		AmazingTitles.registerCustomAnimation(name, this);
+	}
+	
+	public AnimationComponent createComponent(ComponentArguments arguments, String[] args) {
+		String mainText = (overrideMainText != null)? overrideMainText : (arguments.getMainText() != null)? arguments.getMainText() : componentArguments.getMainText();
+		String subText = (overrideSubText != null)? overrideSubText : (arguments.getSubText() != null)? arguments.getSubText() : componentArguments.getSubText();
+		BarColor barColor = (overrideBarColor != null)? overrideBarColor : (arguments.getComponentColor() != null)? arguments.getComponentColor() : componentArguments.getComponentColor();
+		int duration = (overrideDuration != -99)? overrideDuration : (arguments.getDuration() > 0)? arguments.getDuration() : componentArguments.getDuration();
+		int fps = (overrideFps != -99)? overrideFps : (arguments.getFps() > 0)? arguments.getFps() : componentArguments.getFps();
+		DisplayType displayType = (overrideDisplayType != null)? overrideDisplayType : (arguments.getDisplayType() != null)? arguments.getDisplayType() : componentArguments.getDisplayType();
+		ComponentArguments builtArguments = ComponentArguments.create(mainText, subText, barColor, duration, fps, displayType);
+		LinkedList<String> frames = framesBuilder.buildFrames(builtArguments, args);
+		if (animationType == AnimationType.REPEATING) {
+			return new RepeatingAnimationComponent(Booter.getInstance(), frames, mainText, subText, fps, duration, displayType, barColor);
+		}
+		if (animationType == AnimationType.FADE_IN) {
+			return new FadeInAnimationComponent(Booter.getInstance(), frames, mainText, subText, fps, duration, displayType, barColor);
+		}
+		return new LightAnimationComponent(Booter.getInstance(), frames.get(0), mainText, subText, duration, displayType, barColor);
+	}
+	
+}

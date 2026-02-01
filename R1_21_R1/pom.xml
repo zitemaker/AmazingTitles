@@ -4,12 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>sk.m3ii0.amazingtitles.code</groupId>
+        <groupId>com.zitemaker.amazingtitles.code</groupId>
         <artifactId>AmazingTitles</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>sk.m3ii0.amazingtitles.code.providers.R1_21_R1</groupId>
+    <groupId>com.zitemaker.amazingtitles.code.providers.R1_21_R1</groupId>
     <artifactId>R1_21_R1</artifactId>
 
     <properties>
@@ -20,7 +20,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>sk.m3ii0.amazingtitles.code</groupId>
+            <groupId>com.zitemaker.amazingtitles.code</groupId>
             <artifactId>Core_1</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>provided</scope>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.21-R0.1-SNAPSHOT</version>
+            <version>1.21.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
