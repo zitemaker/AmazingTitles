@@ -79,7 +79,7 @@ public class Booter extends JavaPlugin implements Listener {
 			new UpdateChecker(this, "AmazingTitles", "https://www.spigotmc.org/resources/109916/", "amazingtitles.admin", "5.0", 109916);
 		}
 		
-		metrics = new Metrics(this, 18588);
+		metrics = new Metrics(this, 29212);
 		
 	}
 	
