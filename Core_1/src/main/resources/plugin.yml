@@ -2,9 +2,10 @@ name: AmazingTitles
 api-version: 1.13
 version: 5.0
 main: com.zitemaker.amazingtitles.code.internal.Booter
-author: M3II0
+author: Zitemaker
 softdepend:
   - CMI
+  - PlaceholderAPI
 commands:
   amazingtitles:
     permission: "amazingtitles.command"

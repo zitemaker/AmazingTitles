@@ -9,19 +9,20 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 import com.zitemaker.amazingtitles.code.api.AmazingTitles;
 import com.zitemaker.amazingtitles.code.api.enums.DisplayType;
+import com.zitemaker.amazingtitles.code.Iintegrations.PlaceholderAPIIntegration;
 import com.zitemaker.amazingtitles.code.internal.Booter;
 import com.zitemaker.amazingtitles.code.internal.components.AnimationComponent;
 
 import java.util.*;
 
 public class RepeatingAnimationComponent implements AnimationComponent {
-	
+
 	/*
-	*
-	* Values
-	*
-	* */
-	
+	 *
+	 * Values
+	 *
+	 */
+
 	private BukkitTask task;
 	private Runnable runnable;
 	private BossBar bossBar;
@@ -37,14 +38,15 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 	private final int fps;
 	private final DisplayType displayType;
 	private final BarColor componentColor;
-	
+
 	/*
-	*
-	* Constructor
-	*
-	* */
-	
-	public RepeatingAnimationComponent(Plugin plugin, LinkedList<String> frames, String mainText, String subText, int fps, int duration, DisplayType displayType, BarColor componentColor) {
+	 *
+	 * Constructor
+	 *
+	 */
+
+	public RepeatingAnimationComponent(Plugin plugin, LinkedList<String> frames, String mainText, String subText,
+			int fps, int duration, DisplayType displayType, BarColor componentColor) {
 		this.plugin = plugin;
 		this.frames = frames;
 		this.mainText = mainText;
@@ -54,87 +56,85 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 		this.displayType = displayType;
 		this.componentColor = componentColor;
 	}
-	
+
 	/*
-	*
-	* Values management
-	*
-	* */
-	
+	 *
+	 * Values management
+	 *
+	 */
+
 	@Override
 	public List<String> frames() {
 		return frames;
 	}
-	
+
 	@Override
 	public String mainText() {
 		return mainText;
 	}
-	
+
 	@Override
 	public Optional<String> subText() {
 		return Optional.of(subText);
 	}
-	
+
 	@Override
 	public int duration() {
 		return duration;
 	}
-	
+
 	@Override
 	public int fps() {
 		return fps;
 	}
-	
+
 	@Override
 	public DisplayType display() {
 		return displayType;
 	}
-	
+
 	@Override
 	public Optional<BarColor> componentColor() {
 		return AnimationComponent.super.componentColor();
 	}
-	
+
 	/*
-	*
-	* Player management
-	*
-	* */
-	
+	 *
+	 * Player management
+	 *
+	 */
+
 	@Override
 	public void addReceivers(Player... players) {
 		receivers.addAll(Arrays.asList(players));
 	}
-	
+
 	@Override
 	public void addReceivers(Collection<Player> players) {
 		receivers.addAll(players);
 	}
-	
+
 	@Override
 	public void removeReceivers(Player... players) {
 		receivers.removeAll(Arrays.asList(players));
 	}
-	
+
 	@Override
 	public void removeReceivers(Collection<Player> players) {
 		receivers.removeAll(players);
 	}
-	
+
 	/*
-	*
-	* Animation management
-	*
-	* */
-	
-	
-	
+	 *
+	 * Animation management
+	 *
+	 */
+
 	@Override
 	public String callCurrentFrame() {
 		return frames.get(0);
 	}
-	
+
 	@Override
 	public void prepare() {
 		for (Player p : receivers) {
@@ -152,9 +152,12 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 			this.runnable = () -> {
 				if (next()) {
 					String frame = frames.get(framesCounter);
-					Object[] packets = Booter.getNmsProvider().createTitlePacket(frame, subText, 0, 20, 0);
 					for (Player p : receivers) {
-						if (p == null) continue;
+						if (p == null)
+							continue;
+						String resolved = PlaceholderAPIIntegration.resolve(p, frame);
+						String resolvedSub = PlaceholderAPIIntegration.resolve(p, subText);
+						Object[] packets = Booter.getNmsProvider().createTitlePacket(resolved, resolvedSub, 0, 20, 0);
 						Booter.getNmsProvider().sendTitles(p, packets);
 					}
 				} else {
@@ -166,9 +169,12 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 			this.runnable = () -> {
 				if (next()) {
 					String frame = frames.get(framesCounter);
-					Object[] packets = Booter.getNmsProvider().createTitlePacket(subText, frame, 0, 20, 0);
 					for (Player p : receivers) {
-						if (p == null) continue;
+						if (p == null)
+							continue;
+						String resolvedSub = PlaceholderAPIIntegration.resolve(p, subText);
+						String resolved = PlaceholderAPIIntegration.resolve(p, frame);
+						Object[] packets = Booter.getNmsProvider().createTitlePacket(resolvedSub, resolved, 0, 20, 0);
 						Booter.getNmsProvider().sendTitles(p, packets);
 					}
 				} else {
@@ -180,9 +186,11 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 			this.runnable = () -> {
 				if (next()) {
 					String frame = frames.get(framesCounter);
-					Object packet = Booter.getNmsProvider().createActionbarPacket(frame);
 					for (Player p : receivers) {
-						if (p == null) continue;
+						if (p == null)
+							continue;
+						String resolved = PlaceholderAPIIntegration.resolve(p, frame);
+						Object packet = Booter.getNmsProvider().createActionbarPacket(resolved);
 						Booter.getNmsProvider().sendActionbar(p, packet);
 					}
 				} else {
@@ -194,6 +202,12 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 			this.runnable = () -> {
 				if (next()) {
 					String frame = frames.get(framesCounter);
+					if (!receivers.isEmpty()) {
+						Player first = receivers.get(0);
+						if (first != null) {
+							frame = PlaceholderAPIIntegration.resolve(first, frame);
+						}
+					}
 					bossBar.setTitle(frame);
 				} else {
 					end();
@@ -201,15 +215,15 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 			};
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		if (displayType == DisplayType.BOSS_BAR && bossBar != null) {
 			bossBar.setVisible(true);
 		}
-		task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this.runnable, 0, 20/fps);
+		task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this.runnable, 0, 20 / fps);
 	}
-	
+
 	@Override
 	public void end() {
 		for (Player p : receivers) {
@@ -225,7 +239,7 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 		receivers.clear();
 		frames.clear();
 	}
-	
+
 	private boolean next() {
 		++framesCounter;
 		if (framesCounter >= frames.size()) {
@@ -241,9 +255,9 @@ public class RepeatingAnimationComponent implements AnimationComponent {
 		++loopedFrames;
 		return true;
 	}
-	
+
 	private int framesPerSecond() {
 		return fps;
 	}
-	
+
 }

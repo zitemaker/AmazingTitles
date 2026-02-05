@@ -19,60 +19,60 @@ import java.util.List;
 import java.util.Map;
 
 public class PluginCommand implements CommandExecutor, TabExecutor {
-	
+
 	/*
-	*
-	* Values
-	*
-	* */
-	
+	 *
+	 * Values
+	 *
+	 */
+
 	private static final Map<String, CommandHandler> handlers = new HashMap<>();
-	
+
 	/*
-	*
-	* Constructor
-	*
-	* */
-	
+	 *
+	 * Constructor
+	 *
+	 */
+
 	public PluginCommand(Plugin plugin) {
 		handlers.put("sendAnimation", new CHAnimations());
 		handlers.put("sendNotification", new CHNotifications());
 		handlers.put("sendMessage", new CHMessages());
 		handlers.put("pluginActions", new CHPluginActions());
 	}
-	
+
 	/*
-	*
-	* API
-	*
-	* */
-	
+	 *
+	 * API
+	 *
+	 */
+
 	@Override
 	public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] args) {
 		return parseComplete(s, cmd, label, args);
 	}
-	
+
 	@Override
 	public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
 		return parseCommand(s, args);
 	}
-	
+
 	/*
-	*
-	* Builders
-	*
-	* */
-	
+	 *
+	 * Builders
+	 *
+	 */
+
 	private List<String> parseComplete(CommandSender s, Command cmd, String label, String[] args) {
-		
+
 		// Values
 		List<String> value = new ArrayList<>();
-		
+
 		/*
-		*
-		* 0 - Handler list
-		*
-		* */
+		 *
+		 * 0 - Handler list
+		 *
+		 */
 		if (args.length == 1) {
 			String begin = args[0];
 			for (Map.Entry<String, CommandHandler> entry : handlers.entrySet()) {
@@ -84,17 +84,17 @@ public class PluginCommand implements CommandExecutor, TabExecutor {
 			}
 			return CommandUtils.copyAllStartingWith(value, begin);
 		}
-		
+
 		/*
-		*
-		* 1 - Handler return
-		*
-		* */
+		 *
+		 * 1 - Handler return
+		 *
+		 */
 		if (args.length > 1) {
 			String handlerName = args[0];
 			CommandHandler handler = handlers.get(handlerName);
 			if (handler != null) {
-				String[] handlerArguments = new String[args.length-1];
+				String[] handlerArguments = new String[args.length - 1];
 				System.arraycopy(args, 1, handlerArguments, 0, handlerArguments.length);
 				return handler.readAndReturn(s, handlerArguments);
 			} else {
@@ -102,10 +102,10 @@ public class PluginCommand implements CommandExecutor, TabExecutor {
 				return value;
 			}
 		}
-		
+
 		return value;
 	}
-	
+
 	public boolean parseCommand(CommandSender s, String[] args) {
 		if (args.length == 0) {
 			s.spigot().sendMessage(MessageUtils.getPluginHelp());
@@ -114,7 +114,7 @@ public class PluginCommand implements CommandExecutor, TabExecutor {
 		String handlerName = args[0];
 		CommandHandler handler = handlers.get(handlerName);
 		if (handler != null) {
-			String[] handlerArguments = new String[args.length-1];
+			String[] handlerArguments = new String[args.length - 1];
 			System.arraycopy(args, 1, handlerArguments, 0, handlerArguments.length);
 			boolean result = handler.readAndExecute(s, handlerArguments);
 			if (!result) {
@@ -125,17 +125,17 @@ public class PluginCommand implements CommandExecutor, TabExecutor {
 		s.spigot().sendMessage(MessageUtils.getPluginHelp());
 		return true;
 	}
-	
+
 	public static Map<String, CommandHandler> getHandlers() {
 		return handlers;
 	}
-	
+
 	public static void addHandler(String argument, CommandHandler handler) {
 		handlers.put(argument, handler);
 	}
-	
+
 	public static void removeHandler(String argument) {
 		handlers.remove(argument);
 	}
-	
+
 }

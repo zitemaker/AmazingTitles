@@ -1,51 +1,53 @@
 package com.zitemaker.amazingtitles.code.internal.smartbar;
 
-import org.bukkit.entity.Player;
+import com.zitemaker.amazingtitles.code.Iintegrations.PlaceholderAPIIntegration;
 import com.zitemaker.amazingtitles.code.internal.Booter;
+import org.bukkit.entity.Player;
 
 import java.util.*;
 
 public class SmartBar {
-	
+
 	/*
-	*
-	* Values
-	*
-	* */
-	
+	 *
+	 * Values
+	 *
+	 */
+
 	private final Player owner;
 	private final boolean notifications;
 	private final boolean staticAnimation;
 	private final boolean staticAnimationNotifications;
-	
+
 	private boolean hide = false;
 	private static List<String> staticAnimationContent = new ArrayList<>();
 	private int staticAnimationContentCounter = 0;
 	private final Map<String, SmartNotification> notificationsContent = new HashMap<>();
-	
+
 	/*
-	*
-	* Constructor
-	*
-	* */
-	
-	public SmartBar(Player owner, boolean notifications, boolean staticAnimation, boolean staticAnimationNotifications) {
+	 *
+	 * Constructor
+	 *
+	 */
+
+	public SmartBar(Player owner, boolean notifications, boolean staticAnimation,
+			boolean staticAnimationNotifications) {
 		this.owner = owner;
 		this.notifications = notifications;
 		this.staticAnimation = staticAnimation;
 		this.staticAnimationNotifications = staticAnimationNotifications;
 	}
-	
+
 	/*
-	*
-	* API
-	*
-	* */
-	
+	 *
+	 * API
+	 *
+	 */
+
 	public static void setStaticAnimationContent(List<String> staticAnimationContent) {
 		SmartBar.staticAnimationContent = staticAnimationContent;
 	}
-	
+
 	public void setNotification(String id, SmartNotification notification) {
 		double time = notification.getTime();
 		for (SmartNotification notification1 : notificationsContent.values()) {
@@ -53,20 +55,21 @@ public class SmartBar {
 		}
 		this.notificationsContent.put(id, notification);
 	}
-	
+
 	public void tryToInstantRemoveNotification(String id) {
 		SmartNotification notification = notificationsContent.get(id);
 		if (notification != null) {
 			notification.quickRemove();
 		}
 	}
-	
+
 	public void setHide(boolean hide) {
 		this.hide = hide;
 	}
-	
+
 	public void prepareAndTryToSend() {
-		if (hide) return;
+		if (hide)
+			return;
 		final StringBuilder text = new StringBuilder();
 		if (staticAnimation) {
 			if (staticAnimationNotifications) {
@@ -81,11 +84,13 @@ public class SmartBar {
 		} else if (notifications) {
 			text.append(prepareNotifications());
 		}
-		if (text.toString().isEmpty()) return;
-		final Object packet = Booter.getNmsProvider().createActionbarPacket(text.toString());
+		if (text.length() == 0)
+			return;
+		String resolved = PlaceholderAPIIntegration.resolve(owner, text.toString());
+		Object packet = Booter.getNmsProvider().createActionbarPacket(resolved);
 		Booter.getNmsProvider().sendActionbar(owner, packet);
 	}
-	
+
 	private String prepareNotifications() {
 		final StringBuilder notificationsText = new StringBuilder();
 		int counter = 0;
@@ -93,7 +98,7 @@ public class SmartBar {
 		int size = notificationsContent.size();
 		final Set<String> toRemove = new HashSet<>();
 		for (Map.Entry<String, SmartNotification> entry : notificationsContent.entrySet()) {
-			int next = counter+1;
+			int next = counter + 1;
 			boolean latest = true;
 			if (next < size) {
 				SmartNotification nextOne = null;
@@ -105,7 +110,8 @@ public class SmartBar {
 					++internalCounter;
 				}
 				if (nextOne != null) {
-					if (!nextOne.isEnding(mills)) latest = false;
+					if (!nextOne.isEnding(mills))
+						latest = false;
 				}
 			}
 			String key = entry.getKey();
@@ -123,18 +129,20 @@ public class SmartBar {
 		for (String var : toRemove) {
 			notificationsContent.remove(var);
 		}
-		if (notificationsText.length() < 2) return "";
+		if (notificationsText.length() < 2)
+			return "";
 		return notificationsText.substring(1);
 	}
-	
+
 	private String pickCurrentStaticFrame() {
 		String frame = staticAnimationContent.get(staticAnimationContentCounter);
 		++staticAnimationContentCounter;
 		if (staticAnimationContentCounter >= staticAnimationContent.size()) {
 			staticAnimationContentCounter = 0;
 		}
-		if (frame == null) return "";
+		if (frame == null)
+			return "";
 		return frame;
 	}
-	
+
 }

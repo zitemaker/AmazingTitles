@@ -8,6 +8,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import com.zitemaker.amazingtitles.code.Iintegrations.CMIIntegration;
 import com.zitemaker.amazingtitles.code.Iintegrations.Integration;
+import com.zitemaker.amazingtitles.code.Iintegrations.PlaceholderAPIIntegration;
 import com.zitemaker.amazingtitles.code.api.builders.AnimationBuilder;
 import com.zitemaker.amazingtitles.code.api.interfaces.AmazingExtension;
 import com.zitemaker.amazingtitles.code.internal.Booter;
@@ -23,13 +24,13 @@ import java.io.File;
 import java.util.*;
 
 public class AmazingTitles {
-	
+
 	/*
-	*
-	* Values
-	*
-	* */
-	
+	 *
+	 * Values
+	 *
+	 */
+
 	private static final Map<String, AnimationBuilder> animations = new HashMap<>();
 	private static final Map<UUID, AnimationComponent> components = new HashMap<>();
 	private static final Map<String, AmazingExtension> extensions = new HashMap<>();
@@ -39,38 +40,40 @@ public class AmazingTitles {
 	public static final File INTEGRATIONS_FOLDER = new File(Booter.getInstance().getDataFolder(), "Integrations");
 
 	static {
-		if (!EXTENSIONS_FOLDER.exists()) EXTENSIONS_FOLDER.mkdirs();
-		if (!INTEGRATIONS_FOLDER.exists()) INTEGRATIONS_FOLDER.mkdirs();
+		if (!EXTENSIONS_FOLDER.exists())
+			EXTENSIONS_FOLDER.mkdirs();
+		if (!INTEGRATIONS_FOLDER.exists())
+			INTEGRATIONS_FOLDER.mkdirs();
 	}
 
 	/*
-	*
-	* Internal
-	*
-	* */
-	
+	 *
+	 * Internal
+	 *
+	 */
+
 	public static void reloadPlugin(CommandSender sender) {
 		Booter.getBooter().reload(sender);
 	}
-	
+
 	public static void reloadPlugin() {
 		Booter.getBooter().reload(null);
 	}
-	
+
 	/*
-	*
-	* Extensions
-	*
-	* */
-	
+	 *
+	 * Extensions
+	 *
+	 */
+
 	public static Set<String> getLoadedExtensionFileNames() {
 		return loadedExtensions;
 	}
-	
+
 	public static Set<String> getLoadedExtensionNames() {
 		return extensions.keySet();
 	}
-	
+
 	public static void loadExtension(AmazingExtension extension) {
 		extensions.put(extension.extension_name(), extension);
 		try {
@@ -80,17 +83,19 @@ public class AmazingTitles {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static AmazingExtension unloadExtension(String extensionName) {
 		AmazingExtension extension = extensions.remove(extensionName);
-		if (extension == null) return null;
+		if (extension == null)
+			return null;
 		loadedExtensions.remove(extension.getAsFile().getName());
 		extension.unload();
 		unregisterExtensionListeners(extensionName);
 		Set<String> toRemove = new HashSet<>();
 		for (Map.Entry<String, AnimationBuilder> entry : animations.entrySet()) {
 			AmazingExtension loadedAs = entry.getValue().getOwner();
-			if (loadedAs == null) continue;
+			if (loadedAs == null)
+				continue;
 			if (loadedAs.extension_name().equalsIgnoreCase(extensionName)) {
 				toRemove.add(entry.getKey());
 			}
@@ -100,26 +105,27 @@ public class AmazingTitles {
 		}
 		return extension;
 	}
-	
+
 	public static void registerExtensionListener(AmazingExtension extension, Listener listener) {
 		List<Listener> listeners = extensionsListeners.getOrDefault(extension.extension_name(), new ArrayList<>());
 		Bukkit.getPluginManager().registerEvents(listener, Booter.getInstance());
 		listeners.add(listener);
 		extensionsListeners.put(extension.extension_name(), listeners);
 	}
-	
+
 	public static List<Listener> getExtensionListeners(String extension) {
 		return extensionsListeners.getOrDefault(extension, new ArrayList<>());
 	}
-	
+
 	public static void unregisterExtensionListeners(String extension) {
 		List<Listener> listeners = extensionsListeners.get(extension);
-		if (listeners == null) return;
+		if (listeners == null)
+			return;
 		for (Listener var : listeners) {
 			HandlerList.unregisterAll(var);
 		}
 	}
-	
+
 	public static void unloadAllExtensions() {
 		for (AmazingExtension extension : extensions.values()) {
 			unloadExtension(extension.extension_name());
@@ -127,17 +133,17 @@ public class AmazingTitles {
 		extensions.clear();
 		extensionsListeners.clear();
 	}
-	
+
 	/*
-	*
-	* System
-	*
-	* */
-	
+	 *
+	 * System
+	 *
+	 */
+
 	public static void executeAmazingTitlesCommand(String command) {
 		executeAmazingTitlesCommand(command, false);
 	}
-	
+
 	public static void executeAmazingTitlesCommand(String command, boolean handlers) {
 		if (command.startsWith("/") && command.length() > 1) {
 			command = command.substring(1);
@@ -148,7 +154,7 @@ public class AmazingTitles {
 			String[] args = command.split(" ");
 			String[] builtArgs;
 			if (args.length > 0) {
-				builtArgs = new String[args.length-1];
+				builtArgs = new String[args.length - 1];
 			} else {
 				builtArgs = new String[0];
 			}
@@ -156,27 +162,27 @@ public class AmazingTitles {
 			Booter.getPluginCommand().parseCommand(Bukkit.getConsoleSender(), builtArgs);
 		}
 	}
-	
+
 	/*
-	*
-	* Command handlers
-	*
-	* */
-	
+	 *
+	 * Command handlers
+	 *
+	 */
+
 	public static void registerCommandHandler(String argument, CommandHandler commandHandler) {
 		PluginCommand.addHandler(argument, commandHandler);
 	}
-	
+
 	public static void unregisterCommandHandler(String argument) {
 		PluginCommand.removeHandler(argument);
 	}
-	
+
 	/*
-	*
-	* Animations
-	*
-	* */
-	
+	 *
+	 * Animations
+	 *
+	 */
+
 	public static void registerCustomAnimation(String name, AnimationBuilder animationBuilder) {
 		if (name == null || animationBuilder == null) {
 			System.out.println("[AT] Name or AnimationBuilder is null!");
@@ -185,36 +191,37 @@ public class AmazingTitles {
 		name = name.replace(" ", "_").toUpperCase();
 		animations.put(name, animationBuilder);
 	}
-	
+
 	public static void unregisterCustomAnimation(String name) {
 		animations.remove(name);
 	}
-	
+
 	public static AnimationBuilder getCustomAnimation(String name) {
 		return animations.get(name);
 	}
-	
+
 	public static boolean isCustomAnimationExists(String name) {
 		return getCustomAnimation(name) != null;
 	}
-	
+
 	public static boolean isCustomAnimationEnabled(String name) {
 		return animations.containsKey(name);
 	}
-	
+
 	public static Collection<AnimationBuilder> getAnimations() {
 		return animations.values();
 	}
-	
+
 	public static Set<String> getAnimationNames() {
 		return animations.keySet();
 	}
-	
+
 	public static void broadcastAnimation(String animation, ComponentArguments arguments, String[] args) {
 		sendAnimation(animation, arguments, args, Bukkit.getOnlinePlayers().toArray(new Player[0]));
 	}
-	
-	public static void sendAnimation(String animation, ComponentArguments arguments, String[] args, Collection<Player> players) {
+
+	public static void sendAnimation(String animation, ComponentArguments arguments, String[] args,
+			Collection<Player> players) {
 		AnimationBuilder builder = animations.get(animation);
 		if (builder != null) {
 			AnimationComponent component = builder.createComponent(arguments, args);
@@ -223,7 +230,7 @@ public class AmazingTitles {
 			component.run();
 		}
 	}
-	
+
 	public static void sendAnimation(String animation, ComponentArguments arguments, String[] args, Player... players) {
 		AnimationBuilder builder = animations.get(animation);
 		if (builder != null) {
@@ -233,65 +240,66 @@ public class AmazingTitles {
 			component.run();
 		}
 	}
-	
+
 	/*
-	*
-	* Components
-	*
-	* */
-	
+	 *
+	 * Components
+	 *
+	 */
+
 	public static void insertAnimation(Player player, AnimationComponent component) {
 		components.put(player.getUniqueId(), component);
 	}
-	
+
 	public static AnimationComponent getAnimationBy(Player player) {
 		return getAnimationBy(player.getUniqueId());
 	}
-	
+
 	public static AnimationComponent getAnimationBy(UUID uuid) {
 		return components.get(uuid);
 	}
-	
+
 	public static void removeAnimation(Player player) {
 		AnimationComponent component = getAnimationBy(player);
-		if (component == null) return;
+		if (component == null)
+			return;
 		component.removeReceivers(player);
 	}
-	
+
 	public static void removeAnimation(UUID uuid) {
 		removeAnimation(Bukkit.getPlayer(uuid));
 	}
-	
+
 	public static boolean hasAnimation(Player player) {
 		return hasAnimation(player.getUniqueId());
 	}
-	
+
 	public static boolean hasAnimation(UUID uuid) {
 		return components.get(uuid) != null;
 	}
-	
+
 	public static void removeAnimationFromCache(UUID uuid) {
 		components.remove(uuid);
 	}
-	
+
 	/*
-	*
-	* Smart bar
-	*
-	* */
-	
+	 *
+	 * Smart bar
+	 *
+	 */
+
 	public static SmartBar getSmartBar(Player player) {
 		return Booter.getSmartBarManager().getBar(player);
 	}
-	
+
 	public static void broadcastNotification(SmartNotification notification) {
 		sendNotification(UUID.randomUUID().toString(), notification);
 	}
-	
+
 	public static void broadcastNotification(String id, SmartNotification notification) {
 		sendNotification(id, notification, Bukkit.getOnlinePlayers().toArray(new Player[0]));
 	}
-	
+
 	public static void sendNotification(String customId, SmartNotification notification, Collection<Player> players) {
 		for (Player var : players) {
 			SmartBar bar = getSmartBar(var);
@@ -300,11 +308,11 @@ public class AmazingTitles {
 			}
 		}
 	}
-	
+
 	public static void sendNotification(SmartNotification notification, Collection<Player> players) {
 		sendNotification(UUID.randomUUID().toString(), notification, players);
 	}
-	
+
 	public static void sendNotification(String customId, SmartNotification notification, Player... players) {
 		for (Player var : players) {
 			SmartBar bar = getSmartBar(var);
@@ -313,11 +321,11 @@ public class AmazingTitles {
 			}
 		}
 	}
-	
+
 	public static void sendNotification(SmartNotification notification, Player... players) {
 		sendNotification(UUID.randomUUID().toString(), notification, players);
 	}
-	
+
 	public static void hideSmartBar(Player player) {
 		SmartBar bar = getSmartBar(player);
 		if (bar == null) {
@@ -325,7 +333,7 @@ public class AmazingTitles {
 		}
 		bar.setHide(true);
 	}
-	
+
 	public static void showSmartBar(Player player) {
 		SmartBar bar = getSmartBar(player);
 		if (bar == null) {
@@ -333,42 +341,42 @@ public class AmazingTitles {
 		}
 		bar.setHide(false);
 	}
-	
+
 	/*
-	*
-	* Messages
-	*
-	* */
-	
+	 *
+	 * Messages
+	 *
+	 */
+
 	public static BaseComponent[] getInteractiveMessageFromRaw(String rawMessage) {
 		return InteractiveMessageHelper.getMessageFromRaw(rawMessage);
 	}
-	
+
 	public static void sendInteractiveMessage(String rawMessage, Player... players) {
 		BaseComponent[] message = getInteractiveMessageFromRaw(rawMessage);
 		for (Player var : players) {
 			var.spigot().sendMessage(message);
 		}
 	}
-	
+
 	public static void sendInteractiveMessage(String rawMessage, Collection<Player> players) {
 		BaseComponent[] message = getInteractiveMessageFromRaw(rawMessage);
 		for (Player var : players) {
 			var.spigot().sendMessage(message);
 		}
 	}
-	
+
 	public static void broadcastInteractiveMessage(String rawMessage) {
 		BaseComponent[] message = getInteractiveMessageFromRaw(rawMessage);
 		Bukkit.spigot().broadcast(message);
 	}
-	
+
 	/*
-	*
-	* System (Internal)
-	*
-	* */
-	
+	 *
+	 * System (Internal)
+	 *
+	 */
+
 	public static void clearCacheInternally() {
 		animations.clear();
 		components.clear();
@@ -381,26 +389,24 @@ public class AmazingTitles {
 	}
 
 	/*
-	*
-	* Integrations
-	*
-	* */
+	 *
+	 * Integrations
+	 *
+	 */
 
 	public static void loadIntegrations() {
+		PlaceholderAPIIntegration.init();
 
 		List<Integration> integrations = new ArrayList<>();
 
-		// CMI Integration
-		if (isPluginHere("CMI")) integrations.add(new CMIIntegration());
+		if (isPluginHere("CMI"))
+			integrations.add(new CMIIntegration());
 
-		for (Integration var : integrations) {
-			var.reload();
-		}
-
+		integrations.forEach(Integration::reload);
 	}
 
 	private static boolean isPluginHere(String name) {
 		return Bukkit.getPluginManager().getPlugin(name) != null;
 	}
-	
+
 }
